@@ -1,0 +1,26 @@
+# IDENTIFY AND PREVENT SERVER-SIDE REQUEST FORGERY
+--------------------------------------------------
+
+* Introduction
+--------------
+Modern applications rarely exist as their own unit in today’s connected world. Instead, a single application may be compromised of multiple services, expanding across different networks 
+and machines. Large databases generally operate on their own systems, while the application logic happens on another. Now, with the widespread adoption of cloud services, certain 
+components may be operated not only on different networks and machines but by entirely independent organizations.
+
+Given this, it is not uncommon for applications to offer capabilities that allow them to generate requests and retrieve data from separate systems. While this operation can be used to 
+access and initiate complex processes on a cloud service provider, it can also provide users with basic features designed to improve the overall application experience.
+
+Think, for example, a profile picture. We could ask users to download a picture they like and upload it to our application. However, if it’s already on the web, why not just let them give 
+us a URL? With careful tuning, we can create an easy-to-use feature to streamline user customization!
+
+However, as with everything application-wise, we need to be conscious of the security of such functions. What happens if a user makes a request to a file that isn’t a picture? What 
+happens if they enter a URL designed to access a restricted resource such as an administrative panel?
+
+If we’re not careful, we can easily introduce a server-side request forgery (SSRF) vulnerability within our application. SSRF is an incredibly serious vulnerability that occurs when an 
+attacker can force a server-side application to make arbitrary requests on our behalf. Depending on how an application is configured, the impacts can range from wasted bandwidth to a full 
+system compromise!
+
+In the coming examples, we’ll see the potential impact of such issues and several basic solutions we can use to prevent this vulnerability within our software.
+
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
