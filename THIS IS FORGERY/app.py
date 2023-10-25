@@ -26,7 +26,7 @@ def admin():
         
 @app.route('/ssrf', methods=['GET'])
 def ssrf():
-    url = request.args.get('https://127.0.0.1:8181/admin')
+    url = request.args.get('url')
     try:
         r = requests.get(url)
         body = r.text
