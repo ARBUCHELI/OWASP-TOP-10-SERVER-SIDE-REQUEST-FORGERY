@@ -24,3 +24,81 @@ In the coming examples, we’ll see the potential impact of such issues and seve
 
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+* Server-Side Request Forgery Vulnerability
+-------------------------------------------
+Let’s look at an application designed to illustrate the potential issues associated with SSRF. This application contains three endpoints: /, /admin, /ssrf.
+
+The / endpoint provides users with a simple form containing only a button. When the button is clicked, a GET request is sent to /admin, the other endpoint. This endpoint accepts a GET 
+parameter named ‘url’ and sends a HTTP request to the provided URL. In the previous form, found at /, the ‘url’ parameter is set to a site that returns the current time.
+
+The /ssrf endpoint is designed only to be accessible from the localhost (127.0.0.1). While not as common as it used to be, this was a standard way to “secure” an endpoint in the past. The 
+idea behind restricting access to 127.0.0.1 is that it would only be accessible to a user with access to the server’s operating system. However, as we’ll soon see, this method should 
+never be trusted.
+
+If we look at the code for the /ssrf endpoint, we can see several interesting components:
+
+	1. The “url” parameter is sent directly to the requests.get() resulting in requests.get(url). Leveraging this, we can force the server to send HTTP GET requests to arbitrary locations by 
+	simply changing the “url” parameter! This, by definition, is a perfect example of an SSRF!
+
+	2. Because we can send an HTTP request from the scope of the application, we can access the /admin endpoint!
+
+* Instructions
+--------------
+NOTE: If the webpage within the learning environment does not load properly, refresh the learning environment browser.
+
+To bypass the security for this endpoint, we need to enter https://127.0.0.1:8181/admin within the ‘url’ parameter in the URL. Your URL should look like the following:
+
+	https://localhost/ssrf?url=http://127.0.0.1:8181/admin
+
+Once we do this, we’ll see the message displayed to an authenticated admin!
+
+NOTE BELOW: If you do not see the following displayed message:
+
+	Here's the Time:
+	Welcome, Admin! You've successfully exploited a server-side request forgery vulnerability!
+
+Click the Run button within the code editor and refresh the learning environment’s URL
+
+app.py
+------
+from flask import Flask
+from flask import request
+import requests
+
+app = Flask(__name__)
+
+@app.route('/')
+def index():
+    return '''
+	CHECK THE TIME BASED ON THIS SYSTEM'S IP!
+	<form action="/ssrf" id="time">
+	<label>Please Enter Your URL</label>
+	<input type="hidden" id="url" name="url" value="https://worldtimeapi.org/api/ip">
+	</form>
+	<button type="submit" form="time">Check the time!</button>
+
+	'''
+
+@app.route('/admin', methods=['GET'])
+def admin():
+    ip_addr = request.remote_addr
+    if ip_addr == '127.0.0.1':
+        return "Welcome, Admin! You've successfully exploited a server-side request forgery vulnerability!"
+    else:
+        return "Access Denied"
+        
+@app.route('/ssrf', methods=['GET'])
+def ssrf():
+    url = request.args.get('https://127.0.0.1:8181/admin')
+    try:
+        r = requests.get(url)
+        body = r.text
+        return 'Here\'s the Time:<br>' + body
+    except Exception as e:
+        return str(e)
+
+app.run(host='0.0.0.0', port=8181)
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
