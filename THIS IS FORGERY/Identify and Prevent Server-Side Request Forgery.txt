@@ -101,4 +101,112 @@ app.run(host='0.0.0.0', port=8181)
 
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+* Server-Side Request Forgery Patched
+-------------------------------------
+In the last example, we saw how we could access a “protected” endpoint by exploiting a server-side request forgery (SSRF). Let’s look at a safer app version with the SSRF vulnerability 
+removed. While the /admin endpoint still uses the localhost IP for access control, by removing the SSRF we reduce the overall risk of authorized users accessing the protected endpoint.
+
+Looking back at the /ssrf endpoint, we see several new lines of code added to the method call. Below the url parameter component, we now have an array called safe_host. This array 
+contains an entry for a predetermined host, which we have deemed safe. We also have a safe_content_type parameter which defines a list of content types we have chosen to allow in the 
+request responses. From here, we can use these features, in this case, just the safe_host list, to determine if a requested URL is allowed.
+
+By implementing an allow list, we can help ensure that the requests our server sends do not go to unexpected and potentially dangerous places, such as the /admin endpoint. It is worth 
+noting here, however, that this safety measure may not be enough in some situations. For example, if the application was set to follow redirects, and an open redirect vulnerability was 
+uncovered in the “safe” host, it may still be possible to make arbitrary requests to a dangerous location!
+
+Overall, SSRF is an incredibly dangerous vulnerability, which generally requires a layered approach for protection. When securing your application against SSRF, we should consider the 
+following solutions:
+
+	. Apply an allow list to restrict arbitrary requests.
+	. Ensure “protected” assets have robust access controls spanning past just IPs.
+
+* Instructions
+--------------
+Try to bypass the security for the patched website by inserting the following:
+
+https://127.0.0.1:8181/admin within the ‘url’ parameter in the URL. Your URL should look like the following:
+
+https://localhost/ssrf?url=http://127.0.0.1:8181/admin
+
+app.py
+------
+from flask import Flask
+from flask import request
+import requests
+from urllib.parse import urlparse
+
+
+app = Flask(__name__)
+
+@app.route('/')
+def index():
+    return '''
+        CHECK THE TIME BASED ON THIS SYSTEM'S IP!
+        <form action="/ssrf" id="time">
+        <label>Please Enter Your URL</label>
+        <input type="hidden" id="url" name="url" value="https://worldtimeapi.org/api/ip">
+        </form>
+        <button type="submit" form="time">Check the time!</button>
+
+        '''
+@app.route('/admin', methods=['GET'])
+def admin():
+    ip_addr = request.remote_addr
+    if ip_addr == '127.0.0.1':
+        return "Welcome Admin! You've succesfully exploited a server side request forgery vulnerability!"
+    else:
+        return "Access Denied"
+@app.route('/ssrf', methods=['GET'])
+def ssrf():
+    url = request.args.get('url')
+    safe_host = ['worldtimeapi.org']
+    safe_content_type = ['application/json']
+    url_object = urlparse(url)
+    if url_object.hostname not in safe_host:
+        return "You've entered a bad URL!"
+    try:
+        r = requests.get(url)
+        body = r.text
+        return 'Here\'s the Time:<br>' + body
+    except Exception as e:
+        return str(e)
+
+app.run(host='0.0.0.0', port=8181)
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
