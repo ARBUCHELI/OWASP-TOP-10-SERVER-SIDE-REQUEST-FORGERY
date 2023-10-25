@@ -175,6 +175,22 @@ app.run(host='0.0.0.0', port=8181)
 
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+* Conclusion
+------------
+Through our past exercises, we’ve been introduced to the basics of SSRF. In recent years, this vulnerability has increased in severity and notoriety, even gaining its own place in the 
+2021 OWASP Top Ten!
+
+While there may be many reasons to provide users with a means to send requests from the server, these instances must be carefully controlled. When sending requests, the following should 
+be considered:
+
+	. Apply an allow list to restrict arbitrary requests.
+
+	. Ensure “protected” assets have robust access controls spanning past just IPs.
+
+	. Apply an allow list to restrict requests and their responses based on content types.
+
+	. Avoid trusting user input when possible.
+
 
 
 
